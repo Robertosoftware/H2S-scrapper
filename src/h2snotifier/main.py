@@ -1,11 +1,10 @@
+import json
 import logging
 
-from dotenv import dotenv_values
-
 from db import create_table, sync_houses
-from scrape import scrape, house_to_msg
+from dotenv import dotenv_values
+from scrape import house_to_msg, scrape
 from telegram import TelegramBot
-import json
 
 env = dotenv_values(".env")
 TELEGRAM_API_KEY = env.get("TELEGRAM_API_KEY")

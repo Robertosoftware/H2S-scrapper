@@ -1,7 +1,6 @@
 import logging
 
 import requests
-
 from dotenv import dotenv_values
 from telegram import TelegramBot
 
@@ -306,7 +305,7 @@ def scrape(cities=[], page_size=30):
                 }
             )
         except Exception as err:
-            debug_telegram.send_simple_msg(f"Error in parsing house!")
+            debug_telegram.send_simple_msg("Error in parsing house!")
             debug_telegram.send_simple_msg(str(err))
             debug_telegram.send_simple_msg(str(house))
             logging.error("Error in parsing house")

@@ -1,0 +1,42 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "containerEnv": {
+    "HOME": "/home/vscode"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "foxundermoon.shell-format",
+        "oderwat.indent-rainbow",
+        "yzhang.markdown-all-in-one",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "source.fixAll.ruff": false,
+          "source.organizeImports.ruff": true
+        },
+        "[shellscript]": {
+          "editor.defaultFormatter": "foxundermoon.shell-format",
+          "editor.formatOnSave": true
+        },
+        "python.pythonPath": "/home/vscode/.pyenv/shims/python"
+      }
+    }
+  },
+  "name": "H2S Notifier",
+  "postCreateCommand": "pip install pre-commit",
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global --add credential.useHttpPath true && pre-commit install",
+  "remoteUser": "vscode",
+  "workspaceFolder": "/home/vscode/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/workspace,type=bind"
+}

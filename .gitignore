@@ -120,8 +120,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-h2snotifier/.env
-h2snotifier/venv
+.env
 .venv
 env/
 venv/
@@ -160,7 +159,20 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# Local development
+tmp
+.vscode
+.python-version
+test.sh
+login.sh
+.ruff_cache
 
-h2snotifier/config.json
-h2snotifier/houses.db
-h2snotifier/house_sync.log
+.tmp
+
+.databricks
+job_template.json
+.idea
+
+*.code-workspace
+
+.DS_Store

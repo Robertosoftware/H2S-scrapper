@@ -1,12 +1,12 @@
-import os
-import requests
-import random
 import json
+import logging
+import os
+import random
+from io import BytesIO
 from urllib.parse import quote
 
-from io import BytesIO
+import requests
 from PIL import Image
-import logging
 
 
 class TelegramBot:
@@ -30,8 +30,8 @@ class TelegramBot:
                     media.append(dict(type="photo", media=f"attach://{name}"))
                 except Exception as e:
                     logging.error(f"Error processing image: {img}, Error: {e}")
-                    debug_telegram.send_simple_msg(f"Error processing image: {img}")
-                    debug_telegram.send_simple_msg(str(e))
+                    # debug_telegram.send_simple_msg(f"Error processing image: {img}")
+                    # debug_telegram.send_simple_msg(str(e))
                     continue
         if media:
             media[0]["caption"] = caption

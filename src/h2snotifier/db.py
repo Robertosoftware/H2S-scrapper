@@ -1,5 +1,5 @@
-import sqlite3
 import logging
+import sqlite3
 from datetime import datetime
 
 # Define column names for the houses table
@@ -81,7 +81,7 @@ def sync_houses(city_id, houses):
     try:
         # Get the existing houses in the database for the given city_id
         c.execute("""SELECT url_key FROM houses WHERE city = ? and occupied_at is null """, (city_id,))
-        existing_houses = set(row[0] for row in c.fetchall())
+        existing_houses = {row[0] for row in c.fetchall()}
 
         # Extract the url_keys from the new houses
         new_houses_url_keys = {house["url_key"] for house in houses}
