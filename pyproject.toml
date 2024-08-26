@@ -28,6 +28,7 @@ urllib3 = "^2.2.2"
 
 [tool.poetry.group.dev.dependencies]
 mypy-extensions = "^1.0.0"
+pylint = "^3.2.6"
 
 [build-system]
 requires = ["poetry-core"]
