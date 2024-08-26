@@ -6,3 +6,6 @@ install:
 
 build:
     poetry build
+
+run:
+    poetry run h2s_scrapper

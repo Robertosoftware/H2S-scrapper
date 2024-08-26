@@ -11,9 +11,10 @@ import os
 from typing import Any, Dict, List, Optional
 
 import requests
-from db import create_table, sync_houses
-from scrape import house_to_msg, scrape
-from telegram import TelegramBot
+
+from h2s_scrapper.db import create_table, sync_houses
+from h2s_scrapper.scrape import house_to_msg, scrape
+from h2s_scrapper.telegram import TelegramBot
 
 # Load environment variables using os and ensure they are not None
 TELEGRAM_API_KEY = os.getenv("TELEGRAM_API_KEY")
@@ -28,7 +29,7 @@ if DEBUGGING_CHAT_ID is None:
 debug_telegram = TelegramBot(apikey=TELEGRAM_API_KEY, chat_id=DEBUGGING_CHAT_ID)
 
 
-def read_config(config_path: str = "config.json") -> Dict[str, Any]:
+def read_config() -> Dict[str, Any]:
     """
     Reads the configuration from the specified JSON file.
 
@@ -39,8 +40,12 @@ def read_config(config_path: str = "config.json") -> Dict[str, Any]:
         Dict[str, Any]: Configuration data as a dictionary.
     """
     try:
+        script_dir = os.path.dirname(__file__)  # Directory of the script being run
+        config_path = os.path.join(script_dir, "config.json")
         with open(config_path, encoding="utf-8") as f:
-            return json.load(f)
+            config = json.load(f)
+            config["telegram"]["groups"][0]["chat_id"] = DEBUGGING_CHAT_ID
+            return config
     except FileNotFoundError as e:
         logging.error("Configuration file not found: %s", e)
         debug_telegram.send_simple_msg(f"Configuration file not found: {e}")
@@ -99,7 +104,7 @@ def main() -> None:
     Main function to scrape house data and send notifications via Telegram.
     """
     create_table()
-    config = read_config("config.json")
+    config = read_config()
 
     for group in config["telegram"]["groups"]:
         cities = group["cities"]

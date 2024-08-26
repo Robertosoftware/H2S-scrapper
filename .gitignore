@@ -176,3 +176,5 @@ job_template.json
 *.code-workspace
 
 .DS_Store
+
+config.json

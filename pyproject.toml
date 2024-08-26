@@ -29,6 +29,8 @@ sqlparse = "^0.5.1"
 tomli = "^2.0.1"
 typing-extensions = "^4.12.2"
 urllib3 = "^2.2.2"
+python-telegram-bot = "^21.4"
+asyncio = "^3.4.3"
 
 [tool.poetry.group.dev.dependencies]
 mypy-extensions = "^1.0.0"
