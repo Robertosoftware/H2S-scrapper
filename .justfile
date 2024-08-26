@@ -3,3 +3,6 @@ precommit:
 
 install:
     poetry install --with dev
+
+build:
+    poetry build

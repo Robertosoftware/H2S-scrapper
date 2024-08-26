@@ -2,8 +2,12 @@
 name = "h2s scrapper"
 version = "0.1.0"
 description = "H2S Web Scrapper for the community by the community"
-authors = ["Your Name <you@example.com>"]
+authors = ["Roberto Software <robertodgb@gmail.com>"]
 readme = "README.md"
+packages = [{ include = "h2s_scrapper", from = "src" }]
+
+[tool.poetry.scripts]
+h2s_scrapper = "h2s_scrapper.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
