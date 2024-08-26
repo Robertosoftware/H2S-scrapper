@@ -73,7 +73,8 @@ def process_house_notifications(
                     res.json(),
                 )
                 debug_telegram.send_simple_msg(
-                    f"Failed to send Telegram notification for {h.get('url_key', 'unknown')}: {res.json()}"
+                    f"""Failed to send Telegram notification for
+                    {h.get('url_key', 'unknown')}: {res.json()}"""
                 )
                 logging.error(*error_msg)
 
