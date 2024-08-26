@@ -7,18 +7,22 @@ to configured Telegram groups.
 
 import json
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 import requests
 from db import create_table, sync_houses
-from dotenv import dotenv_values
 from scrape import house_to_msg, scrape
 from telegram import TelegramBot
 
-# Load environment variables
-env = dotenv_values(".env")
-TELEGRAM_API_KEY = env.get("TELEGRAM_API_KEY")
-DEBUGGING_CHAT_ID = env.get("DEBUGGING_CHAT_ID")
+# Load environment variables using os and ensure they are not None
+TELEGRAM_API_KEY = os.getenv("TELEGRAM_API_KEY")
+DEBUGGING_CHAT_ID = os.getenv("DEBUGGING_CHAT_ID")
+
+if TELEGRAM_API_KEY is None:
+    raise ValueError("TELEGRAM_API_KEY environment variable is not set")
+if DEBUGGING_CHAT_ID is None:
+    raise ValueError("DEBUGGING_CHAT_ID environment variable is not set")
 
 # Initialize the debug Telegram bot
 debug_telegram = TelegramBot(apikey=TELEGRAM_API_KEY, chat_id=DEBUGGING_CHAT_ID)
@@ -100,8 +104,13 @@ def main() -> None:
     for group in config["telegram"]["groups"]:
         cities = group["cities"]
         chat_id = group["chat_id"]
-        telegram = TelegramBot(apikey=TELEGRAM_API_KEY, chat_id=chat_id)
+        if chat_id is None:
+            raise ValueError("Chat ID is not set for one of the groups in the config")
 
+        if TELEGRAM_API_KEY is None:
+            raise ValueError("Telegram API key is not set in environment variables")
+
+        telegram = TelegramBot(apikey=TELEGRAM_API_KEY, chat_id=chat_id)
         # Scrape house data for the specified cities
         houses_in_cities = scrape(cities=cities)
 
