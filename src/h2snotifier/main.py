@@ -1,3 +1,10 @@
+"""
+Module for notifying users about new house listings via Telegram.
+
+This script scrapes house data, syncs it with the database, and sends notifications
+to configured Telegram groups.
+"""
+
 import json
 import logging
 from typing import Any, Dict, List, Optional
@@ -28,11 +35,15 @@ def read_config(config_path: str = "config.json") -> Dict[str, Any]:
         Dict[str, Any]: Configuration data as a dictionary.
     """
     try:
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        logging.error("Error reading configuration file: %s", e)
-        debug_telegram.send_simple_msg(f"Error reading configuration file: {e}")
+    except FileNotFoundError as e:
+        logging.error("Configuration file not found: %s", e)
+        debug_telegram.send_simple_msg(f"Configuration file not found: {e}")
+        raise
+    except json.JSONDecodeError as e:
+        logging.error("Error decoding JSON from config file: %s", e)
+        debug_telegram.send_simple_msg(f"Error decoding JSON from config file: {e}")
         raise
 
 
@@ -66,7 +77,7 @@ def process_house_notifications(
                 )
                 logging.error(*error_msg)
 
-        except Exception as error:
+        except requests.RequestException as error:
             error_msg = (
                 "Error sending notification for house %s: %s",
                 h.get("url_key", "unknown"),
