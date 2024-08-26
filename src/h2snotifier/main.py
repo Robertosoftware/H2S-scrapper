@@ -31,7 +31,7 @@ def read_config(config_path: str = "config.json") -> Dict[str, Any]:
         with open(config_path) as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        logging.error(f"Error reading configuration file: {e}")
+        logging.error("Error reading configuration file: %s", e)
         debug_telegram.send_simple_msg(f"Error reading configuration file: {e}")
         raise
 
@@ -51,19 +51,31 @@ def process_house_notifications(
             # Send house details as a simple message
             res: Optional[requests.Response] = telegram.send_simple_msg(house_to_msg(h))
             logging.info(
-                f"Sent Telegram notification for {h.get('url_key', 'unknown')}"
+                "Sent Telegram notification for %s", h.get("url_key", "unknown")
             )
 
             # Check for unsuccessful send attempts
             if res and res.status_code != 200:
-                error_msg = f"Failed to send Telegram notification for {h.get('url_key', 'unknown')}: {res.json()}"
-                debug_telegram.send_simple_msg(error_msg)
-                logging.error(error_msg)
+                error_msg = (
+                    "Failed to send Telegram notification for %s: %s",
+                    h.get("url_key", "unknown"),
+                    res.json(),
+                )
+                debug_telegram.send_simple_msg(
+                    f"Failed to send Telegram notification for {h.get('url_key', 'unknown')}: {res.json()}"
+                )
+                logging.error(*error_msg)
 
         except Exception as error:
-            error_msg = f"Error sending notification for house {h.get('url_key', 'unknown')}: {error}"
-            debug_telegram.send_simple_msg(error_msg)
-            logging.error(error_msg)
+            error_msg = (
+                "Error sending notification for house %s: %s",
+                h.get("url_key", "unknown"),
+                error,
+            )
+            debug_telegram.send_simple_msg(
+                f"Error sending notification for house {h.get('url_key', 'unknown')}: {error}"
+            )
+            logging.error(*error_msg)
 
 
 def main() -> None:
