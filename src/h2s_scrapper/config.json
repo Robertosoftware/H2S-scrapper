@@ -2,7 +2,7 @@
   "telegram": {
     "groups": [
       {
-        "chat_id": -1001918590031,
+        "chat_id": "<Your chat number>",
         "cities": [
           "90",
           "6088",
@@ -10,8 +10,8 @@
           "25",
           "619"
         ],
-        "join_link": "https://t.me/h2sdebugging",
-        "name": "Debugging group"
+        "join_link": "https://t.me/+abTOfK9_owBlMTg0",
+        "name": "H2S Demo"
       }
     ]
   }
