@@ -176,3 +176,6 @@ job_template.json
 *.code-workspace
 
 .DS_Store
+
+# Ignore all .db files
+*.db
