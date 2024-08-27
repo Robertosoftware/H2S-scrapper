@@ -27,7 +27,7 @@ async def send_message(text, chat_id):
 
 async def main():
     # Sending a message
-    await send_message(text="Hi Roberto!, How are you?", chat_id=DEBUGGING_CHAT_ID)
+    await send_message(text="Hi!, How are you?", chat_id=DEBUGGING_CHAT_ID)
 
 
 if __name__ == "__main__":

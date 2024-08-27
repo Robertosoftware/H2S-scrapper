@@ -1,6 +1,7 @@
 import logging
 import os
 
+import cloudscraper
 import requests
 
 from h2s_scrapper.telegram import TelegramBot
@@ -221,6 +222,15 @@ MAX_REGISTER_TYPES = {
     "502": "Four",
 }
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36",
+    "Upgrade-Insecure-Requests": "1",
+    "DNT": "1",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Accept-Encoding": "gzip, deflate",
+}
+
 
 def city_id_to_city(city_id):
     # Use CITY_IDS dictionary for city lookup
@@ -280,7 +290,10 @@ def scrape(cities=[], page_size=30):
     payload = generate_payload(cities, page_size)
 
     try:
-        response = requests.post("https://api.holland2stay.com/graphql/", json=payload)
+        scraper = cloudscraper.create_scraper(browser="chrome")
+        response = scraper.post(
+            "https://api.holland2stay.com/graphql/", json=payload, headers=headers
+        )
         response.raise_for_status()  # Raise an HTTPError for bad responses
         json_data = response.json()
     except requests.exceptions.RequestException as req_err:
