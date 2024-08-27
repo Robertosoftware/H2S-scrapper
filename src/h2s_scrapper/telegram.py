@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import random
 from io import BytesIO
 from typing import List, Optional
 from urllib.parse import quote
@@ -53,7 +52,7 @@ class TelegramBot:
                     img = Image.open(response.raw)
                     img.save(output, format="PNG")
                     output.seek(0)
-                    name = f"photo-{random.random()}-{i}.png"
+                    name = f"photo-{i}.png"
                     files[name] = output.read()
                     media.append({"type": "photo", "media": f"attach://{name}"})
                 except Exception as e:
