@@ -1,6 +1,7 @@
 import logging
 import sqlite3
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 # Define column names for the houses table
 house_columns = [
@@ -14,6 +15,7 @@ house_columns = [
     "contract_type",
     "rooms",
 ]
+
 # Non-mass assignables: 'created_at', 'occupied_at'
 
 # Configure logging
@@ -24,19 +26,26 @@ logging.basicConfig(
 )
 
 
-# Function to create a database connection
-def create_connection():
+def create_connection() -> Optional[sqlite3.Connection]:
+    """
+    Create a connection to the SQLite database.
+
+    Returns:
+        Optional[sqlite3.Connection]: SQLite connection object if successful, None otherwise.
+    """
     try:
         conn = sqlite3.connect("houses.db")
         logging.info("Database connection created")
         return conn
     except sqlite3.Error as e:
         logging.error(f"Error creating database connection: {e}")
-    return None
+        return None
 
 
-# Function to create the houses table
-def create_table():
+def create_table() -> None:
+    """
+    Create the 'houses' table and necessary indexes if they don't exist.
+    """
     conn = create_connection()
     if conn is None:
         return
@@ -58,10 +67,8 @@ def create_table():
                       occupied_at TEXT DEFAULT NULL,
                       rooms TEXT)"""
         )
-        c.execute("""CREATE INDEX IF NOT EXISTS idx_url_key ON houses (url_key)""")
-        c.execute(
-            """CREATE INDEX IF NOT EXISTS idx_occupied_at ON houses (occupied_at)"""
-        )
+        c.execute("CREATE INDEX IF NOT EXISTS idx_url_key ON houses (url_key)")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_occupied_at ON houses (occupied_at)")
         conn.commit()
         logging.info("Table 'houses' created if not exists")
     except sqlite3.Error as e:
@@ -70,17 +77,31 @@ def create_table():
         conn.close()
 
 
-# Function to sync houses and update occupied_at
-def sync_houses(city_id, houses):
+def sync_houses(city_id: str, houses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Sync houses data with the database. Updates `occupied_at` for houses not present in the new data
+    and inserts new houses into the database.
+
+    Args:
+        city_id (str): The city identifier to filter houses by.
+        houses (List[Dict[str, Any]]): A list of house data dictionaries to sync.
+
+    Returns:
+        List[Dict[str, Any]]: A list of new houses inserted into the database.
+    """
     conn = create_connection()
     if conn is None:
         return []
 
-    c = conn.cursor()
     new_houses = []
     try:
+        c = conn.cursor()
+
         # Get the existing houses in the database for the given city_id
-        c.execute("""SELECT url_key FROM houses WHERE city = ? and occupied_at is null """, (city_id,))
+        c.execute(
+            "SELECT url_key FROM houses WHERE city = ? AND occupied_at IS NULL",
+            (city_id,),
+        )
         existing_houses = {row[0] for row in c.fetchall()}
 
         # Extract the url_keys from the new houses
@@ -89,7 +110,11 @@ def sync_houses(city_id, houses):
         # Houses to be updated (those in the database but not in the new houses)
         to_be_updated = existing_houses - new_houses_url_keys
         if to_be_updated:
-            update_query = f"""UPDATE houses SET occupied_at = ? WHERE occupied_at is null and url_key IN ({','.join(['?'] * len(to_be_updated))})"""
+            update_query = f"""
+            UPDATE houses
+            SET occupied_at = ?
+            WHERE occupied_at IS NULL AND url_key IN ({','.join(['?'] * len(to_be_updated))})
+            """
             c.execute(
                 update_query, (datetime.now().isoformat(),) + tuple(to_be_updated)
             )
@@ -101,16 +126,17 @@ def sync_houses(city_id, houses):
             if house["url_key"] not in existing_houses
         ]
 
-        new_houses = []
-        for house in houses:
-            if house["url_key"] not in existing_houses:
-                new_houses.append(house)
         if to_be_inserted:
-            # print(list(to_be_inserted[0]))
-            insert_query = f"""INSERT INTO houses ({','.join(house_columns)}) VALUES ({','.join(['?'] * len(house_columns))})"""
+            insert_query = f"""
+            INSERT INTO houses ({','.join(house_columns)})
+            VALUES ({','.join(['?'] * len(house_columns))})
+            """
             c.executemany(insert_query, to_be_inserted)
             conn.commit()
 
+            new_houses = [
+                house for house in houses if house["url_key"] not in existing_houses
+            ]
             logging.info(f"{len(new_houses)} new houses inserted into the database")
 
     except sqlite3.Error as e:

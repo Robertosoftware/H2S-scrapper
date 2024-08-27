@@ -1,13 +1,21 @@
 import logging
+import os
 
+import cloudscraper
 import requests
-from dotenv import dotenv_values
-from telegram import TelegramBot
 
-env = dotenv_values(".env")
-TELEGRAM_API_KEY = env.get("TELEGRAM_API_KEY")
-DEBUGGING_CHAT_ID = env.get("DEBUGGING_CHAT_ID")
+from h2s_scrapper.telegram import TelegramBot
+from h2s_scrapper.utils import setup_logger
 
+# Load environment variables using os and ensure they are not None
+TELEGRAM_API_KEY = os.getenv("TELEGRAM_API_KEY")
+DEBUGGING_CHAT_ID = os.getenv("DEBUGGING_CHAT_ID")
+
+if TELEGRAM_API_KEY is None:
+    raise ValueError("TELEGRAM_API_KEY environment variable is not set")
+if DEBUGGING_CHAT_ID is None:
+    raise ValueError("DEBUGGING_CHAT_ID environment variable is not set")
+logger = setup_logger("h2s_scrapper")
 debug_telegram = TelegramBot(apikey=TELEGRAM_API_KEY, chat_id=DEBUGGING_CHAT_ID)
 
 
@@ -214,6 +222,15 @@ MAX_REGISTER_TYPES = {
     "502": "Four",
 }
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36",
+    "Upgrade-Insecure-Requests": "1",
+    "DNT": "1",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Accept-Encoding": "gzip, deflate",
+}
+
 
 def city_id_to_city(city_id):
     # Use CITY_IDS dictionary for city lookup
@@ -241,11 +258,11 @@ def url_key_to_link(url_key):
 
 def clean_img(url):
     try:
-        if 'cache' not in url:
+        if "cache" not in url:
             return url
-        parts = url.split('/')
-        ci = parts.index('cache')
-        return '/'.join(parts[:ci] + parts[ci + 2:])
+        parts = url.split("/")
+        ci = parts.index("cache")
+        return "/".join(parts[:ci] + parts[ci + 2 :])
     except Exception as error:
         debug_telegram.send_simple_msg(url)
         debug_telegram.send_simple_msg(str(error))
@@ -271,43 +288,83 @@ Contract type: {house['contract_type']}
 # Define the GraphQL query payload
 def scrape(cities=[], page_size=30):
     payload = generate_payload(cities, page_size)
-    response = requests.post("https://api.holland2stay.com/graphql/", json=payload)
-    data = response.json()["data"]
-    cities_dict = {}
-    for c in cities:
-        cities_dict[c] = []
-    for house in data["products"]["items"]:
-        city_id = str(house["city"])
-        try:
-            cleaned_images = [clean_img(img['url']) for img in house['media_gallery']]
 
-            # For now, this image is making an issue. Maybe we need to add similar images later
-            cleaned_images = list(filter(lambda x: "logo-blue-1.jpg" not in x, cleaned_images))
+    try:
+        scraper = cloudscraper.create_scraper(browser="chrome")
+        response = scraper.post(
+            "https://api.holland2stay.com/graphql/", json=payload, headers=headers
+        )
+        response.raise_for_status()  # Raise an HTTPError for bad responses
+        json_data = response.json()
+    except requests.exceptions.RequestException as req_err:
+        debug_telegram.send_simple_msg("Request failed!")
+        logger.debug(payload)
+        debug_telegram.send_simple_msg(str(req_err))
+        logging.error("Request failed")
+        logging.error(str(req_err))
+        return {}  # Return empty dictionary if the request fails
+    except ValueError as val_err:
+        debug_telegram.send_simple_msg("Error decoding JSON!")
+        debug_telegram.send_simple_msg(str(val_err))
+        logging.error("Error decoding JSON")
+        logging.error(str(val_err))
+        return {}  # Return empty dictionary if JSON decoding fails
 
-            cities_dict[city_id].append(
-                {
-                    "url_key": house["url_key"],
-                    "city": str(house["city"]),
-                    "area": str(house["living_area"]).replace(",", "."),
-                    "price_exc": str(house["basic_rent"]),
-                    "price_inc": str(
-                        house["price_range"]["maximum_price"]["final_price"]["value"]
-                    ),
-                    "available_from": house["available_startdate"],
-                    "max_register": str(
-                        max_register_id_to_str(str(house["maximum_number_of_persons"])),
-                    ),
-                    "contract_type": contract_type_id_to_str(
-                        str(house["type_of_contract"])
-                    ),
-                    "rooms": room_id_to_room(str(house["no_of_rooms"])),
-                    "images": cleaned_images
-                }
-            )
-        except Exception as err:
-            debug_telegram.send_simple_msg("Error in parsing house!")
-            debug_telegram.send_simple_msg(str(err))
-            debug_telegram.send_simple_msg(str(house))
-            logging.error("Error in parsing house")
-            logging.error(str(err))
+    # Initialize cities_dict with city keys
+    cities_dict = {c: [] for c in cities}
+
+    try:
+        data = json_data.get("data", {})
+        products = data.get("products", {})
+        items = products.get("items", [])
+
+        for house in items:
+            city_id = str(house.get("city", ""))
+            try:
+                cleaned_images = [
+                    clean_img(img["url"]) for img in house.get("media_gallery", [])
+                ]
+
+                # Filter out specific images
+                cleaned_images = list(
+                    filter(lambda x: "logo-blue-1.jpg" not in x, cleaned_images)
+                )
+
+                cities_dict[city_id].append(
+                    {
+                        "url_key": house.get("url_key", ""),
+                        "city": city_id,
+                        "area": str(house.get("living_area", "")).replace(",", "."),
+                        "price_exc": str(house.get("basic_rent", "")),
+                        "price_inc": str(
+                            house.get("price_range", {})
+                            .get("maximum_price", {})
+                            .get("final_price", {})
+                            .get("value", "")
+                        ),
+                        "available_from": house.get("available_startdate", ""),
+                        "max_register": str(
+                            max_register_id_to_str(
+                                str(house.get("maximum_number_of_persons", ""))
+                            ),
+                        ),
+                        "contract_type": contract_type_id_to_str(
+                            str(house.get("type_of_contract", ""))
+                        ),
+                        "rooms": room_id_to_room(str(house.get("no_of_rooms", ""))),
+                        "images": cleaned_images,
+                    }
+                )
+            except Exception as err:
+                debug_telegram.send_simple_msg("Error in parsing house!")
+                debug_telegram.send_simple_msg(str(err))
+                debug_telegram.send_simple_msg(str(house))
+                logging.error("Error in parsing house")
+                logging.error(str(err))
+    except KeyError as key_err:
+        debug_telegram.send_simple_msg("Error accessing expected data structure!")
+        debug_telegram.send_simple_msg(str(key_err))
+        logging.error("Error accessing expected data structure")
+        logging.error(str(key_err))
+
     return cities_dict

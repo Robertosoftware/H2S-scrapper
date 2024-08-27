@@ -37,6 +37,10 @@
   "postCreateCommand": "pip install pre-commit",
   "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global --add credential.useHttpPath true && pre-commit install",
   "remoteUser": "vscode",
+  "runArgs": [
+    "--env-file",
+    ".devcontainer/.env"
+  ],
   "workspaceFolder": "/home/vscode/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/workspace,type=bind"
 }
