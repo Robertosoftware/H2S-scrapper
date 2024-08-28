@@ -16,6 +16,7 @@
         "foxundermoon.shell-format",
         "oderwat.indent-rainbow",
         "yzhang.markdown-all-in-one",
+        "ms-azuretools.vscode-docker",
         "eamodio.gitlens"
       ],
       "settings": {

@@ -36,8 +36,8 @@ datetime = "^5.5"
 [tool.poetry.group.dev.dependencies]
 mypy-extensions = "^1.0.0"
 pylint = "^3.2.6"
-pre-commit = "^3.8.0"
 ipykernel = "^6.29.5"
+pre-commit = "^3.8.0"
 
 [build-system]
 requires = ["poetry-core"]

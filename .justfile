@@ -1,5 +1,5 @@
 precommit:
-    poetry run pre-commit run --all-files
+    pre-commit run --all-files
 
 install:
     poetry install --with dev
