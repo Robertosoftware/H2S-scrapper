@@ -166,15 +166,7 @@ tmp
 test.sh
 login.sh
 .ruff_cache
-
-.tmp
-
-.databricks
-job_template.json
-.idea
-
 *.code-workspace
-
 .DS_Store
 
 # Ignore all .db files

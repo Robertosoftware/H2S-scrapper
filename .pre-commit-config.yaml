@@ -11,29 +11,11 @@ repos:
       - id: check-json
       - id: pretty-format-json
         args: [--autofix]
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+  - repo:  https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.2
     hooks:
-      - id: mypy
-        additional_dependencies: [types-requests]
-        args:
-          - --ignore-missing-imports
-          - --disable-error-code=attr-defined
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.6.0
-    hooks:
-      - id: ruff
-        args: [., --fix]
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
-    hooks:
-      - id: pyupgrade
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.10.1
-    hooks:
-      - id: isort
-  - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.29.2
-    hooks:
-      - id: check-github-workflows
-        args: ["--verbose"]
+      # Run the linter.
+    - id: ruff
+      args: [ --fix ]
+    # Run the formatter.
+    - id: ruff-format

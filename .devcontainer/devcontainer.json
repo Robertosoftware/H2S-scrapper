@@ -22,7 +22,7 @@
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff",
           "editor.formatOnSave": true,
-          "source.fixAll.ruff": false,
+          "source.fixAll.ruff": true,
           "source.organizeImports.ruff": true
         },
         "[shellscript]": {
@@ -35,7 +35,7 @@
   },
   "name": "H2S Notifier",
   "postCreateCommand": "pip install pre-commit",
-  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global --add credential.useHttpPath true && pre-commit install",
+  "postStartCommand": "just install && git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global --add credential.useHttpPath true",
   "remoteUser": "vscode",
   "runArgs": [
     "--env-file",
